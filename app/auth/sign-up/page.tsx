@@ -10,10 +10,16 @@ import { Button } from "@/components/ui/button"
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authClient } from "@/lib/auth-client"
 import z from "zod"
-
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { useTransition } from "react"
+import { Loader2 } from "lucide-react"
 
 
 export default function SignUpPage() {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition()
+
     const form = useForm({
         resolver: zodResolver(signUpSchema),
         defaultValues: {
@@ -23,12 +29,25 @@ export default function SignUpPage() {
         },
     })
 
-    async function onSubmit(data:z.infer<typeof signUpSchema>) {
-       await authClient.signUp.email({
-        email:data.email,
-        name:data.name,
-        password:data.password
-       })
+    function onSubmit(data: z.infer<typeof signUpSchema>) {
+
+        startTransition(async () => {
+            await authClient.signUp.email({
+                email: data.email,
+                name: data.name,
+                password: data.password,
+                fetchOptions: {
+                    onSuccess: () => {
+                        toast.success("Signed up successfully")
+                        router.push('/')
+                    },
+                    onError: (error) => {
+                        toast.error(error.error.message)
+                    }
+                }
+            })
+        })
+
     }
 
     return (
@@ -108,7 +127,11 @@ export default function SignUpPage() {
                                 </Field>
                             )}
                         />
-                        <Button>Sign up</Button>
+                        <Button disabled={isPending}>{isPending ? (<>
+                            <Loader2 className="size-4 animate-spin" />
+                            <span>Loading...</span>
+                        </>
+                        ) : <span>Signup</span>}</Button>
                     </FieldGroup>
                 </form>
             </CardContent>
