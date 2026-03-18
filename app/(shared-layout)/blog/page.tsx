@@ -4,33 +4,43 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { fetchQuery } from "convex/nextjs"
+import { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
+import { cacheLife, cacheTag } from "next/cache";
+
+export const metadata: Metadata = {
+    title: "Blogs | Next Blogs",
+    description: "Explore all blogs on Next Blogs. Read articles on development, coding, and tech insights.",
+};
 
 export default function BlogPage() {
     return (
         <div className="py-12">
             <div className="text-center pb-12">
-                <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Our Blog</h1>
+                <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">Blogs Around</h1>
                 <p className="pt-4 max-w-2xl mx-auto text-xl text-muted-foreground">Insights, thoughts, and trends from our team. </p>
             </div>
             <Suspense fallback={<SkeletonLoadingUi />}>
                 <LoadBlogs />
             </Suspense>
-
         </div>
     )
 }
 
 async function LoadBlogs() {
+    "use cache";
+    cacheLife("hours");
+    cacheTag("blog");
     const data = await fetchQuery(api.posts.getPosts);
+
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data?.map((post) => (
                 <Card key={post._id} className="pt-0">
                     <div className=" relative h-48 w-full overflow-hidden">
-                        <Image src="/fantasy-style-galaxy-background.jpg" alt="cover" fill className="rounded-t-lg"></Image>
+                        <Image src={post.imageUrl ?? '/placeholderImage.png'} alt="cover" fill className="rounded-t-lg object-cover" unoptimized></Image>
                     </div>
                     <CardContent>
                         <Link href={`/blog/${post._id}`}>

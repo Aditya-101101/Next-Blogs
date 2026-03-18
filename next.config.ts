@@ -1,17 +1,16 @@
-import type { NextConfig } from "next";
-import { hostname } from "os";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  images:{
-    remotePatterns:[
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  cacheComponents:true,
+  images: {
+    remotePatterns: [
       {
-        hostname:'images.unsplash.com',
-        protocol:'https',
-        port:"",
-      }
-    ]
-  }
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "3210",
+        pathname: "/api/storage/**",
+      },
+    ],
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
