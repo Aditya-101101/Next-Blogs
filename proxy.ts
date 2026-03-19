@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
 
-export async function proxy(request: NextRequest) {
-	const sessionCookie = getSessionCookie(request);
+export function middleware(request: NextRequest) {
+	const { pathname } = request.nextUrl;
 
-    // THIS IS NOT SECURE!
-    // This is the recommended approach to optimistically redirect users
-    // We recommend handling auth checks in each page/route
-	if (!sessionCookie) {
+	// ✅ Allow auth routes (no redirect loop)
+	if (pathname.startsWith("/auth")) {
+		return NextResponse.next();
+	}
+
+	// ✅ Check if session cookie exists
+	const token = request.cookies.get("better-auth.session_token")?.value;
+
+	// ❌ No token → redirect to login
+	if (!token) {
 		return NextResponse.redirect(new URL("/auth/login", request.url));
 	}
 
+	// ✅ Token exists → allow request
 	return NextResponse.next();
 }
 
 export const config = {
-	matcher: ["/blog",'/create'], // Specify the routes the middleware applies to
+	matcher: ["/blog", "/create"],
 };
